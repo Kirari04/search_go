@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"io/fs"
 	"log"
 	"os"
 	"regexp"
@@ -114,24 +113,23 @@ func main() {
 
 		start := time.Now()
 		var matchCount int
-		for i := range entries {
+		for _, entrie := range entries {
 			wgSearch.Add(1)
-			go func(e *Data) {
+			go func(e Data) {
 				defer wgSearch.Done()
 				if !isRegex {
-					if (*e).Name == text {
+					if e.Name == text {
 						matchCount++
 						fmt.Printf("[%v] %v\r\n", e.Path, e.Name)
 					}
 				}
 				if isRegex {
-					if reg.MatchString((*e).Name) {
+					if reg.MatchString(e.Name) {
 						matchCount++
-						fmt.Printf("[%v] %v\r\n", *e.Path, e.Name)
+						fmt.Printf("[%v] %v\r\n", matchCount, e.Name)
 					}
 				}
-
-			}(&entries[i])
+			}(entrie)
 		}
 		wgSearch.Wait()
 		fmt.Printf(
@@ -151,6 +149,7 @@ func listAllDirs(entries *[]Data, dir string, debth int) {
 
 	wg.Add(1)
 	defer wg.Done()
+
 	for _, nE := range mewEntries {
 		*entries = append(*entries, Data{
 			Name: nE.Name(),
@@ -162,14 +161,12 @@ func listAllDirs(entries *[]Data, dir string, debth int) {
 	var wgListAllDirs sync.WaitGroup
 	for _, e := range mewEntries {
 		wgListAllDirs.Add(1)
-		go func(e fs.DirEntry) {
+		go func(isDir bool, name string) {
 			defer wgListAllDirs.Done()
-			if e.IsDir() && debth <= maxdebth {
-				wg.Add(1)
-				defer wg.Done()
-				listAllDirs(entries, fmt.Sprintf("%v/%v", dir, e.Name()), debth+1)
+			if isDir && debth <= maxdebth {
+				listAllDirs(entries, fmt.Sprintf("%v/%v", dir, name), debth+1)
 			}
-		}(e)
+		}(e.IsDir(), e.Name())
 	}
 	wgListAllDirs.Wait()
 }
