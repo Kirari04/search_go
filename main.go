@@ -57,7 +57,7 @@ func main() {
 			fmt.Printf("Indexing folders...\r\n")
 			listAllDirs(&entries, rootdir, 0)
 			wg.Wait()
-			log.Printf(
+			fmt.Printf(
 				"It took %vms to index %v files & folders\r\n",
 				time.Now().UnixMilli()-start.UnixMilli(),
 				indexCount,
@@ -81,6 +81,10 @@ func main() {
 				}
 			case "--open":
 				if !logic.Open(commandArr, &matches) {
+					continue
+				}
+			case "--copy":
+				if !logic.Copy(commandArr, &matches) {
 					continue
 				}
 			case "--limit":

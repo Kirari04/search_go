@@ -1,7 +1,7 @@
 package logic
 
 import (
-	"log"
+	"fmt"
 	"strconv"
 )
 
@@ -11,11 +11,11 @@ func Limit(commandArr []string, matchsOutputLimit *int) bool {
 	}
 	nr, err := strconv.Atoi(commandArr[1])
 	if err != nil {
-		log.Println("Invalid Parameter")
+		fmt.Println("Invalid Parameter")
 		return false
 	}
 	if nr < 0 {
-		log.Println("Selected limit out of scope")
+		fmt.Println("Selected limit out of scope")
 		return false
 	}
 	*matchsOutputLimit = nr

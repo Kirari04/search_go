@@ -2,7 +2,6 @@ package logic
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
 	"strconv"
 	"syscall"
@@ -14,16 +13,16 @@ func Open(commandArr []string, matches *[]Data) bool {
 	}
 	fileNr, err := strconv.Atoi(commandArr[1])
 	if err != nil {
-		log.Println("Invalid Parameter")
+		fmt.Println("Invalid Parameter")
 		return false
 	}
 	if fileNr <= 0 || len(*matches) < fileNr {
-		log.Println("Selected file out of scope")
+		fmt.Println("Selected file out of scope")
 		return false
 	}
-	log.Printf("Opening: %v", *(*matches)[fileNr-1].Path)
+	fmt.Printf("Opening: %v", *(*matches)[fileNr-1].Path)
 	if err != nil {
-		log.Printf("Failed to get abs path: %v\r\n", err)
+		fmt.Printf("Failed to get abs path: %v\r\n", err)
 	}
 	cmd := exec.Command("explorer")
 	cmd.SysProcAttr = &syscall.SysProcAttr{
