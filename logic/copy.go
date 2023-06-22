@@ -2,7 +2,6 @@ package logic
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -82,11 +81,11 @@ func Copy(commandArr []string, matches *[]Data) bool {
 }
 
 func copy(from string, to string) error {
-	bytesRead, err := ioutil.ReadFile(from)
+	bytesRead, err := os.ReadFile(from)
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(to, bytesRead, 0755)
+	err = os.WriteFile(to, bytesRead, 0755)
 	if err != nil {
 		return err
 	}
