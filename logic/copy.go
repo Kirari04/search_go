@@ -11,7 +11,7 @@ import (
 
 var copyWg sync.WaitGroup
 
-func Copy(commandArr []string, matches *[]Data) bool {
+func Copy(commandArr []string, entries *SafeEntries, pathSeperator string) bool {
 	if !hasArgsCount(3, &commandArr) {
 		return false
 	}
@@ -49,30 +49,37 @@ func Copy(commandArr []string, matches *[]Data) bool {
 			fmt.Println("Invalid Parameter")
 			return false
 		}
-		if nr <= 0 || len(*matches) < nr {
-			fmt.Println("Selected file out of scope")
-			return false
-		}
 		fileNr = nr
 	}
 
 	if !copyAll {
-		from := fmt.Sprintf("%v%v", *(*matches)[fileNr].Path, (*matches)[fileNr].Name)
-		to := fmt.Sprintf("%v\\%v", absPath, (*matches)[fileNr].Name)
+		file, err := entries.Get(fileNr)
+		if err != nil {
+			log.Printf("Failed to get file by fileNr %v: %v", fileNr, err)
+			return false
+		}
+		if !file.Matched {
+			fmt.Println("You can't select unmatched files")
+			return false
+		}
+		from := fmt.Sprintf("%v%v", *file.Path, file.Name)
+		to := fmt.Sprintf("%v\\%v", absPath, file.Name)
 		if err := copy(from, to); err != nil {
 			log.Printf("Failed to copy file: %v [ %v ] => [ %v ]", err, from, to)
 		}
 	} else {
-		for index, matchingFile := range *matches {
-			copyWg.Add(1)
-			go func(matchingFile Data, index int) {
-				defer copyWg.Done()
-				from := fmt.Sprintf("%v%v", *matchingFile.Path, matchingFile.Name)
-				to := fmt.Sprintf("%v\\nr%d-%v", absPath, index, matchingFile.Name)
-				if err := copy(from, to); err != nil {
-					log.Printf("Failed to copy file: %v [ %v ] => [ %v ]", err, from, to)
-				}
-			}(matchingFile, index)
+		for index, matchingFile := range *entries.Value() {
+			if matchingFile.Matched {
+				copyWg.Add(1)
+				go func(matchingFile Data, index int) {
+					defer copyWg.Done()
+					from := fmt.Sprintf("%v%v", *matchingFile.Path, matchingFile.Name)
+					to := fmt.Sprintf("%v\\nr%d-%v", absPath, index, matchingFile.Name)
+					if err := copy(from, to); err != nil {
+						log.Printf("Failed to copy file: %v [ %v ] => [ %v ]", err, from, to)
+					}
+				}(matchingFile, index)
+			}
 		}
 		copyWg.Wait()
 	}

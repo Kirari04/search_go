@@ -3,11 +3,11 @@ package logic
 import (
 	"fmt"
 	"os/exec"
+	"runtime"
 	"strconv"
-	"syscall"
 )
 
-func Open(commandArr []string, matches *[]Data) bool {
+func Open(commandArr []string, entries *SafeEntries) bool {
 	if !hasArgsCount(2, &commandArr) {
 		return false
 	}
@@ -16,21 +16,30 @@ func Open(commandArr []string, matches *[]Data) bool {
 		fmt.Println("Invalid Parameter")
 		return false
 	}
-	if fileNr <= 0 || len(*matches) < fileNr {
-		fmt.Println("Selected file out of scope")
-		return false
-	}
-	fmt.Printf("Opening: %v", *(*matches)[fileNr-1].Path)
 	if err != nil {
 		fmt.Printf("Failed to get abs path: %v\r\n", err)
 	}
-	cmd := exec.Command("explorer")
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		HideWindow:    false,
-		CmdLine:       fmt.Sprintf(` /select,"%s%s"`, *(*matches)[fileNr-1].Path, (*matches)[fileNr-1].Name),
-		CreationFlags: 0,
+
+	file, err := entries.Get(fileNr)
+	if err != nil {
+		fmt.Printf("Failed to get file by fileNr %v: %v\r\n", fileNr, err)
+		return false
 	}
-	cmd.Run()
+	if !file.Matched {
+		fmt.Println("You can't select unmatched files")
+		return false
+	}
+	fmt.Printf("Opening: %v\r\n", *file.Path)
+
+	if runtime.GOOS == "windows" {
+		cmd := exec.Command("explorer", fmt.Sprintf(` /select,%s%s`, *file.Path, file.Name))
+		cmd.Run()
+	} else if runtime.GOOS == "linux" {
+		cmd := exec.Command("xdg-open", fmt.Sprintf(`%s%s`, *file.Path, file.Name))
+		cmd.Run()
+	} else {
+		fmt.Println("Plattform not supported")
+	}
 
 	return true
 }

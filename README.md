@@ -46,7 +46,9 @@ Listing all .mp4 files using regex
 ## Example Functions
 
 ### OPEN
+
 This example will open `1080p.mp4` inside the file explorer
+
 ```shell
 -> ^*.mp4$
 [1] HolidayJazz.mp4
@@ -63,7 +65,9 @@ Opening: C:\tmp\
 ```
 
 ### COPY
+
 This example will copy `1080p.mp4` into the folder `beans`
+
 ```shell
 -> ^*.mp4$
 [1] HolidayJazz.mp4
@@ -79,7 +83,9 @@ Found 7 matches in 12ms
 ```
 
 ### HELP
+
 This example will output all available commands
+
 ```shell
 -> --help
 #########################
@@ -97,4 +103,23 @@ This example will output all available commands
         --copy * ./destfolder   # copies the all matched files into the destfolder
 
 ->
+```
+
+## Benchmarking Notes
+
+regex
+
+```
+BenchmarkMP4Search\/input_size_([0-9]{1,})-8[ ]{1,}[0-9][ ]{1,}([0-9]{1,}) ns\/op[ ]{1,}([0-9]{1,}) B\/op[ ]{1,}([0-9]{1,}) allocs\/op
+```
+
+csv
+
+```
+$1,$2,$3,$4
+```
+
+run
+```bash
+go test -benchmem -run=^$ -count 3 -bench ^BenchmarkMP4Search$ com/github/kirari04/search_go/benchmark
 ```
